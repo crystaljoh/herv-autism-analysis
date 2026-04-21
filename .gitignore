@@ -205,3 +205,20 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+# --- All of Us Safety Barriers ---
+# Never allow data/archives to leave the secure environment
+*.tgz
+*.tar.gz
+*.zip
+*.fasta
+*.fa
+*.vcf
+*.bam
+*.cram
+*.csv
+*.tsv
+
+# Ignore folders where you might store temporary data
+data/
+output/
+tmp/
