@@ -106,14 +106,15 @@ delete_files ()
    rm $*
 }
 
+delete_fasta=0
+participant_id=$1
+male=${male:-1}
 generate=${generate_fasta:?"must set generate_fasta to 0 or 1"}
 if [ $participant_id = "ref" ]
 then
   generate=0
 fi
-delete_fasta=0
-participant_id=$1
-male=${male:-1}
+
 echo "Processing participant $participant_id"
 if [ $generate = 1 ]
 then
