@@ -48,5 +48,9 @@ Then you can run the script for a particular participant, e.g. for 1234567
 ```
 ./participant.sh 1234567
 ```
+This does two things
+- Retrieves the CRAM file for the participant and creates assemblies from it for the selected chromosomes. The fasta files of these assemblies are placed in the `data` subdirectory. These can also be used by RetroTector
+- Runs blat searches for the hervs present in the `hervs` subdirectory and compares the results with those obtained from the reference
+
 This will create output files in the output subdirectory with names starting with 'results'.
 Any that are non-empty will contain records for insertions or deletions.
