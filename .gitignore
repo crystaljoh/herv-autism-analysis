@@ -210,11 +210,6 @@ __marimo__/
 *.tgz
 *.tar.gz
 *.zip
-*.fasta
-*.fa
-*.vcf
-*.bam
-*.cram
 *.csv
 *.tsv
 
