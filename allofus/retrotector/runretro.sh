@@ -1,5 +1,7 @@
 # execute in herv-autism-analysis/allofus/retrotector/RetroTector-main/ReTe1.0.1
 # ../../runretro.sh <participant_id> <chromosome> <haplotype>
+# before running this you must have run the blat participant script for the participant and chromosome used
+# in order to create the fasta file for the participant chromosome
 participant_id=$1
 chromosome=$2
 haplotype=$3
