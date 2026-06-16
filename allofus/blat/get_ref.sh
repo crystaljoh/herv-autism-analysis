@@ -1,3 +1,4 @@
+mkdir hg38
 cd hg38
 for chr in $chromosomes; do
     wget https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/$chr.fa.gz
