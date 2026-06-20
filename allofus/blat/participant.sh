@@ -103,6 +103,13 @@ blat_herv ()
     if [ $participant_id != "ref" ]
 	then
 	    awk -v threshold=${threshold:=0.5} -v slack=${slack:=60000} -f find_matches.awk ${ref_output_file} ${output_file} > output/results_${unique_suffix}.txt 
+        if [ -s output/results_${unique_suffix}.txt ]
+        then
+            echo "Possible insertion and/or deletions for participant $participant_id $chromosome and herv $herv"
+            cat output/results_${unique_suffix}.txt
+        else
+            rm output/results_${unique_suffix}.txt
+        fi
 	fi
 
 	# only alignments that match nearly all the query
