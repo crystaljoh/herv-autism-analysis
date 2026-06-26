@@ -12,7 +12,7 @@
     {
        if ($2=="Gene:") {
          gene = $3
-         print chromosome ":" start_position "-" end_position, gene, aligned, filenam
+         print start_position , chromosome ":" start_position "-" end_position, gene, aligned, filenam
        }
        else {
         filenam = $1
