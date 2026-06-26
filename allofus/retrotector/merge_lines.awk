@@ -1,16 +1,23 @@
 {
-if (NR%4==1) {
-    filenam = $1
-}
-if (NR%4==2) {
+  if ($2=="Starts") {
     start_position = substr($5, 1, length($5)-1)
     end_position = $8
-}
-if (NR%4==3) {
-    genus = $3
-}
-if (NR%4==0) {
-    gene = $3
-    print "Start ", start_position, "End ", end_position, "Genus ", genus, "Gene ", gene, "Filename ", filenam
-}
+  }
+  else
+  {
+    if (($1=="For") && ($2=="fit")) {
+      aligned = aligned $5
+    }
+    else 
+    {
+       if ($2=="Gene:") {
+         gene = $3
+         print chromosome ":" start_position "-" end_position, gene, aligned, filenam
+       }
+       else {
+        filenam = $1
+        aligned = ""
+       }
+    }
+  }
 }
