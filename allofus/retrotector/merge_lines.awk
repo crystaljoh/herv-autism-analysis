@@ -12,11 +12,16 @@
     {
        if ($2=="Gene:") {
          gene = $3
-         print start_position , chromosome ":" start_position "-" end_position, gene, aligned, filenam
+         print start_position , chromosome ":" start_position "-" end_position, gene, mostused, aligned, filenam
        }
        else {
-        filenam = $1
-        aligned = ""
+         if ($1=="MostUsedRow:") {
+           mostused = $3
+         }
+         else {
+            filenam = $1
+            aligned = ""
+         }
        }
     }
   }
