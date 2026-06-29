@@ -8,17 +8,21 @@ function abs(a)
 BEGIN {
   print "Finding inserted and deleted HERVS..."
   ref_size = 0
+  last_start = 0
 }
 {
-    if ($3 == "Env") {
-    if (FILENAME == ARGV[1]) {
+    # crude duplicate detection
+    # depends on inputs being sorted
+    if (($3 == "Env") && ($1 != last_start)) {
+    last_start = $1
 	# first file is the reference
-    ref_size = ref_size + 1
-	for (i = 1; i <= 6; i++) {
-	    ref[ref_size,i] = $i
-	}
-	ref_matched[ref_size] = 0
-	ref_line[ref_size] = $0
+    if (FILENAME == ARGV[1]) {
+        ref_size = ref_size + 1
+    	for (i = 1; i <= 6; i++) {
+    	    ref[ref_size,i] = $i
+    	}
+    	ref_matched[ref_size] = 0
+    	ref_line[ref_size] = $0
     }
     else {
 	matched = 0
