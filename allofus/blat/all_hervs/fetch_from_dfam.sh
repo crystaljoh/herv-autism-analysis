@@ -1,1 +1,1 @@
-wget -O $1.fa 'https://www.dfam.org/api/families/$1/sequence?format=fasta&download=true'
+wget -O $1.fa https://www.dfam.org/api/families/$1/sequence?format=fasta&download=true
