@@ -31,7 +31,11 @@ process_chromosome ()
 	  fi
     fi
 	blat_phase $participant_id $chromosome 0 &
-	blat_phase $participant_id $chromosome 1 &
+	if [ ! $participant_id = "ref" ]
+	then
+	    blat_phase $participant_id $chromosome 1 &
+    fi
+    wait
 }
 
 process_male_chromosome ()
@@ -98,35 +102,27 @@ blat_herv ()
 	    target_file=data/fasta_${participant_id}_${chromosome}_${haplotype}.2bit
 	    output_file=output/blat_output_${unique_suffix}.psl
 	fi
-	echo ./blat -minIdentity=${minIdentity:=90}  -maxIntron=${maxIntron:=300} ${target_file} hervs/${herv} ${output_file}
-	./blat -minIdentity=${minIdentity:=90}  -maxIntron=${maxIntron:=300} ${target_file} hervs/${herv} ${output_file}
+	# echo ./blat -minIdentity=${minIdentity:=90}  -maxIntron=${maxIntron:=300} ${target_file} hervs/${herv} ${output_file}
+	./blat -minIdentity=${minIdentity}  -maxIntron=${maxIntron:=300} ${target_file} hervs/${herv} ${output_file} > /dev/null
     if [ $participant_id != "ref" ]
 	then
-	    awk -v threshold=${threshold:=0.5} -v slack=${slack:=60000} -f find_matches.awk ${ref_output_file} ${output_file} > output/results_${unique_suffix}.txt 
+	    awk -v threshold=${threshold} -v slack=${slack} -f find_matches.awk ${ref_output_file} ${output_file} > output/results_${unique_suffix}.txt 
         if [ -s output/results_${unique_suffix}.txt ]
         then
-            echo "Possible insertion and/or deletions for participant $participant_id $chromosome and herv $herv"
+            echo ""
+            echo "Possible insertions and/or deletions for participant $participant_id $chromosome $haplotype and herv $herv"
             cat output/results_${unique_suffix}.txt
         else
             rm output/results_${unique_suffix}.txt
         fi
 	fi
 
+    # ! we don't seem to be using this at the moment. Review whether it is necessary and if so fix
 	# only alignments that match nearly all the query
-        # start in query must be near the start and end in query must be near the end
+    # start in query must be near the start and end in query must be near the end
 	# additionally the size of the base gaps in the query must be low
-	awk 'NR<6 || ($12 < 11 && $13 > $11 - 11 && $6 < 200 )'  ${output_file} > ${output_file}.awked
+	# awk 'NR<6 || ($12 < 11 && $13 > $11 - 11 && $6 < 200 )'  ${output_file} > ${output_file}.awked
 	
-        # old stuff
-	# TODO: identify the best match of all overlapping matches and just report those
-	# at the moment many HERVs match any particular one partially
-	#awk 'NR<6 || $1 * 10 > $11 * 4.5'  output/blat_output_${unique_suffix}.psl  > output/blat_output_${unique_suffix}.awked
-	# ./pslScore output/blat_output_${unique_suffix}.awked  | sort -n -k 2 > output/blat_output_simplified_${unique_suffix}.txt
-	#./pslScore output/blat_output_${unique_suffix}.awked  \
-	#    | sort -n -k 2 \
-	#    | awk -v herv=$herv -v chromosome=$chromosome -v haplotype=$haplotype -v participant=$participant_id '{ print herv, chromosome, participant, haplotype, $0 }' > output/blat_output_simplified_${unique_suffix}.txt
-	#echo "Matches for participant $participant_id chromosome $chromosome haplotype $haplotype HERV $herv"
-	#wc output/blat_output_simplified_${unique_suffix}.txt
 }
 
 delete_files ()
@@ -138,6 +134,9 @@ delete_files ()
 delete_fasta=0
 participant_id=$1
 male=${male:-1}
+threshold=${threshold:=0.5}
+slack=${slack:=60000}
+minIdentity=${minIdentity:=80}
 
 mkdir -p data
 mkdir -p output
@@ -147,7 +146,10 @@ then
   ./get_ref.sh
 fi
 
-echo "Processing participant $participant_id"
+echo "Processing participant $participant_id minIdentity ${minIdentity} threshold ${threshold} slack ${slack}"
+# Keep this in sync with find_matches.awk if we change the fields we output
+echo "Fields in PSL format output are"
+echo "matches mismMtches repMatches nCount queryNumInsert queryBaseInsert targetNumInsert targetBaseInsert strand qName qSize qStart qEnd tName tSize tStart tEnd blockCount"
 for chromosome in ${chromosomes:?"must set chromosomes variable"} ; do
    # sex chromosomes must be handled specially for males because they only have one copy so are not phased 
    if [ $male = 1 ] && [ $chromosome = "chrX" ] || [ $chromosome = "chrY" ]
