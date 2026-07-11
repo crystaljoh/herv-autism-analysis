@@ -109,9 +109,9 @@ blat_herv ()
 	    awk -v threshold=${threshold} -v slack=${slack} -f find_matches.awk ${ref_output_file} ${output_file} > output/results_${unique_suffix}.txt 
         if [ -s output/results_${unique_suffix}.txt ]
         then
-            echo ""
-            echo "Possible insertions and/or deletions for participant $participant_id $chromosome $haplotype and herv $herv"
-            cat output/results_${unique_suffix}.txt
+            echolog ""
+            echolog "Possible insertions and/or deletions for participant $participant_id $chromosome $haplotype and herv $herv"
+            cat output/results_${unique_suffix}.txt | tee -a ${logfile}
         else
             rm output/results_${unique_suffix}.txt
         fi
@@ -130,14 +130,18 @@ delete_files ()
    rm $*
 }
 
+echolog ()
+{
+  echo $* | tee -a ${logfile}
+}
 
 delete_fasta=0
 participant_id=$1
 male=${male:-1}
-threshold=${threshold:=0.5}
-slack=${slack:=60000}
+threshold=${threshold:=0.75}
+slack=${slack:=70000}
 minIdentity=${minIdentity:=80}
-
+logfile="output/mismatches_${participant_id}.txt"
 mkdir -p data
 mkdir -p output
 
@@ -146,10 +150,11 @@ then
   ./get_ref.sh
 fi
 
-echo "Processing participant $participant_id minIdentity ${minIdentity} threshold ${threshold} slack ${slack}"
+echolog "Processing participant $participant_id minIdentity ${minIdentity} threshold ${threshold} slack ${slack}"
+echolog "Chromosomes ${chromosomes}"
 # Keep this in sync with find_matches.awk if we change the fields we output
-echo "Fields in PSL format output are"
-echo "matches mismMtches repMatches nCount queryNumInsert queryBaseInsert targetNumInsert targetBaseInsert strand qName qSize qStart qEnd tName tSize tStart tEnd blockCount"
+echolog "Fields in PSL format output are"
+echolog "matches mismMtches repMatches nCount queryNumInsert queryBaseInsert targetNumInsert targetBaseInsert strand qName qSize qStart qEnd tName tSize tStart tEnd blockCount"
 for chromosome in ${chromosomes:?"must set chromosomes variable"} ; do
    # sex chromosomes must be handled specially for males because they only have one copy so are not phased 
    if [ $male = 1 ] && [ $chromosome = "chrX" ] || [ $chromosome = "chrY" ]

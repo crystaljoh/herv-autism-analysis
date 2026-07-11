@@ -47,8 +47,13 @@ function abs(a)
         		break
     	    }
     	}
-    	if ((matched == 0) && (($1 / $11) > threshold) && (($17 - $16) < (2 * $11))) {
-    	    printf "%s%s", "Insertion", OFS
+    	if ((($1 / $11) > threshold) && (($17 - $16) < (2 * $11))) {
+            if (matched == 0) {
+        	    printf "%s%s", "Insertion", OFS
+            }
+            else {
+                printf "%s%s", "Match    ", OFS
+            }
             for(i=1; i<=18; i++) printf "%s%s", $i, (i==18 ? ORS : OFS)
         }
     }
