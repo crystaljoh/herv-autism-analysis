@@ -39,17 +39,28 @@ function abs(a)
     	ref_line[FNR] = $0
     }
     else {
+        # second file is participant
+    	for (i = 1; i <= 18; i++) {
+    	    par[FNR,i] = $i
+    	}
+    	par_size = FNR
+    	par_matched[FNR] = 0
+    	par_line[FNR] = $0
+        # participant alignment matching bases / herv length > threshold
+        # and the range of the alignment is less than twice the herv length
     	if ((($1 / $11) > threshold) && (($17 - $16) < (2 * $11))) {
-        	matched = 0
-            # ref match has to be substantial as well
+        	par_matched[FNR] = 0
         	for (i = 1; i <= ref_size; i++) {
+                # ref alignment not already matched
+                # and within slack of the participant alignment
+                # and ref alignment matching bases at least half of the threshold
         	    if ((ref_matched[i] == 0) && (abs(ref[i,16] - $16) < slack) && ((ref[i,1] / ref[i,11]) > (threshold / 2))) {
-            		matched = 1
+            		par_matched[FNR] = 1
         	        ref_matched[i] = 1
             		break
         	    }
         	}
-            if (matched == 0) {
+            if (par_matched[FNR] == 0) {
         	    printf "%s%s", "Insertion", OFS
                 for(j=1; j<=18; j++) printf "%s%s", $j, (j==18 ? ORS : OFS)
             }
@@ -65,8 +76,24 @@ function abs(a)
 END {
     for (i = 1; i <= ref_size; i++) {
     	if ((ref_matched[i] == 0) && ((ref[i,1] / ref[i,11]) > threshold) && ((ref[i,17] - ref[i,16]) < (2 * ref[i,11]))) {
-    	    printf "%s%s", "Deletion ", OFS
-            for(j=1; j<=18; j++) printf "%s%s", ref[i,j], (j==18 ? ORS : OFS)
+            # check for a participant alignment that is substantial but not already matched
+            matched = 0
+            for (k = 1; k <= par_size; k++) {
+        	    if ((par_matched[k] == 0) && (abs(ref[i,16] - par[k,16]) < slack) && ((par[k,1] / ref[k,11]) > (threshold / 2))) {
+            		matched = 1
+            		break
+        	    }
+            }
+            if (matched == 0) {
+            	printf "%s%s", "Deletion ", OFS
+                for(j=1; j<=18; j++) printf "%s%s", ref[i,j], (j==18 ? ORS : OFS)
+            }
+            else {
+                printf "%s%s", "Match ref", OFS
+                for(j=1; j<=18; j++) printf "%s%s", par[k,j], (j==18 ? ORS : OFS)
+    	        printf "%s%s", "and      ", OFS
+                for(j=1; j<=18; j++) printf "%s%s", ref[i,j], (j==18 ? ORS : OFS)
+            }
         }
     }
 }
