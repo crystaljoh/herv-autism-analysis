@@ -130,7 +130,7 @@ echolog ()
 delete_fasta=0
 participant_id=$1
 male=${male:-1}
-threshold=${threshold:=0.75}
+threshold=${threshold:=0.9}
 slack=${slack:=70000}
 minIdentity=${minIdentity:=80}
 logfile="output/mismatches_${participant_id}.txt"
