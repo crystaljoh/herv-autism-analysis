@@ -39,22 +39,26 @@ function abs(a)
     	ref_line[FNR] = $0
     }
     else {
-    	matched = 0
-    	for (i = 1; i <= ref_size; i++) {
-    	    if ((ref_matched[i] == 0) && (abs(ref[i,16] - $16) < slack)) {
-        		matched = 1
-    	        ref_matched[i] = 1
-        		break
-    	    }
-    	}
     	if ((($1 / $11) > threshold) && (($17 - $16) < (2 * $11))) {
+        	matched = 0
+            # ref match has to be substantial as well
+        	for (i = 1; i <= ref_size; i++) {
+        	    if ((ref_matched[i] == 0) && (abs(ref[i,16] - $16) < slack) && ((ref[i,1] / ref[i,11]) > (threshold / 2))) {
+            		matched = 1
+        	        ref_matched[i] = 1
+            		break
+        	    }
+        	}
             if (matched == 0) {
         	    printf "%s%s", "Insertion", OFS
+                for(j=1; j<=18; j++) printf "%s%s", $j, (j==18 ? ORS : OFS)
             }
             else {
                 printf "%s%s", "Match    ", OFS
+                for(j=1; j<=18; j++) printf "%s%s", $j, (j==18 ? ORS : OFS)
+    	        printf "%s%s", "and      ", OFS
+                for(j=1; j<=18; j++) printf "%s%s", ref[i,j], (j==18 ? ORS : OFS)
             }
-            for(i=1; i<=18; i++) printf "%s%s", $i, (i==18 ? ORS : OFS)
         }
     }
 }
