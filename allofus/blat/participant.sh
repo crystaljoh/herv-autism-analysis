@@ -106,15 +106,7 @@ blat_herv ()
 	./blat -minIdentity=${minIdentity}  -maxIntron=${maxIntron:=300} ${target_file} hervs/${herv} ${output_file} > /dev/null
     if [ $participant_id != "ref" ]
 	then
-	    awk -v threshold=${threshold} -v slack=${slack} -f find_matches.awk ${ref_output_file} ${output_file} > output/results_${unique_suffix}.txt 
-        if [ -s output/results_${unique_suffix}.txt ]
-        then
-            echolog ""
-            echolog "Possible insertions and/or deletions for participant $participant_id $chromosome $haplotype and herv $herv"
-            cat output/results_${unique_suffix}.txt | tee -a ${logfile}
-        else
-            rm output/results_${unique_suffix}.txt
-        fi
+	    awk -v haplotype=${haplotype} -v threshold=${threshold} -v slack=${slack} -f find_matches.awk ${ref_output_file} ${output_file} | tee -a ${logfile} 
 	fi
 
     # ! we don't seem to be using this at the moment. Review whether it is necessary and if so fix
@@ -154,7 +146,7 @@ echolog "Processing participant $participant_id minIdentity ${minIdentity} thres
 echolog "Chromosomes ${chromosomes}"
 # Keep this in sync with find_matches.awk if we change the fields we output
 echolog "Fields in PSL format output are"
-echolog "matches mismMtches repMatches nCount queryNumInsert queryBaseInsert targetNumInsert targetBaseInsert strand qName qSize qStart qEnd tName tSize tStart tEnd blockCount"
+echolog "matches misMatches repMatches nCount queryNumInsert queryBaseInsert targetNumInsert targetBaseInsert strand qName qSize qStart qEnd tName tSize tStart tEnd blockCount haplotype"
 for chromosome in ${chromosomes:?"must set chromosomes variable"} ; do
    # sex chromosomes must be handled specially for males because they only have one copy so are not phased 
    if [ $male = 1 ] && [ $chromosome = "chrX" ] || [ $chromosome = "chrY" ]

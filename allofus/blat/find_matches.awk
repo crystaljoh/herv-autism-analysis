@@ -62,13 +62,16 @@ function abs(a)
         	}
             if (par_matched[FNR] == 0) {
         	    printf "%s%s", "Insertion", OFS
-                for(j=1; j<=18; j++) printf "%s%s", $j, (j==18 ? ORS : OFS)
+                for(j=1; j<=18; j++) printf "%s%s", $j, OFS
+                printf "%s%s", haplotype, ORS
             }
             else {
                 printf "%s%s", "Match    ", OFS
-                for(j=1; j<=18; j++) printf "%s%s", $j, (j==18 ? ORS : OFS)
+                for(j=1; j<=18; j++) printf "%s%s", $j, OFS
+                printf "%s%s", haplotype, ORS
     	        printf "%s%s", "and      ", OFS
-                for(j=1; j<=18; j++) printf "%s%s", ref[i,j], (j==18 ? ORS : OFS)
+                for(j=1; j<=18; j++) printf "%s%s", ref[i,j], OFS
+                printf "%s%s", haplotype, ORS
             }
         }
     }
@@ -86,13 +89,16 @@ END {
             }
             if (matched == 0) {
             	printf "%s%s", "Deletion ", OFS
-                for(j=1; j<=18; j++) printf "%s%s", ref[i,j], (j==18 ? ORS : OFS)
+                for(j=1; j<=18; j++) printf "%s%s", ref[i,j], OFS
+                printf "%s%s", haplotype, ORS
             }
             else {
                 printf "%s%s", "Match ref", OFS
-                for(j=1; j<=18; j++) printf "%s%s", par[k,j], (j==18 ? ORS : OFS)
+                for(j=1; j<=18; j++) printf "%s%s", par[k,j], OFS
+                printf "%s%s", haplotype, ORS
     	        printf "%s%s", "and      ", OFS
-                for(j=1; j<=18; j++) printf "%s%s", ref[i,j], (j==18 ? ORS : OFS)
+                for(j=1; j<=18; j++) printf "%s%s", ref[i,j], OFS
+                printf "%s%s", haplotype, ORS
             }
         }
     }
