@@ -66,7 +66,7 @@ function abs(a)
                 printf "%s%s", haplotype, ORS
             }
             else {
-                printf "%s%s", "Match    ", OFS
+                printf "%s%s", "Match par", OFS
                 for(j=1; j<=18; j++) printf "%s%s", $j, OFS
                 printf "%s%s", haplotype, ORS
     	        printf "%s%s", "and      ", OFS
@@ -82,7 +82,7 @@ END {
             # check for a participant alignment that is substantial but not already matched
             matched = 0
             for (k = 1; k <= par_size; k++) {
-        	    if ((par_matched[k] == 0) && (abs(ref[i,16] - par[k,16]) < slack) && ((par[k,1] / ref[k,11]) > (threshold / 2))) {
+        	    if ((par_matched[k] == 0) && (abs(ref[i,16] - par[k,16]) < slack) && ((par[k,1] / ref[i,11]) > (threshold / 2))) {
             		matched = 1
             		break
         	    }
