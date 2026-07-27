@@ -91,22 +91,26 @@ blat_herv ()
 	local haplotype=$3
 	local herv=$4
 	local unique_suffix=$1_$2_$3_$4
-        local ref_output_file=output/ref_${chromosome}_${herv}.psl
+    local ref_output_dir=output/ref
+    local ref_output_file=ref_${chromosome}_${herv}.psl
 	local target_file
 	local output_file
+    local output_dir
 	if [ $participant_id = "ref" ]
 	then
 	    target_file=hg38/${chromosome}.2bit
-	    output_file=$ref_output_file
+        output_dir=${ref_output_dir}
+	    output_file=${output_dir}/$ref_output_file
 	else
 	    target_file=data/fasta_${participant_id}_${chromosome}_${haplotype}.2bit
-	    output_file=output/blat_output_${unique_suffix}.psl
+        output_dir=output/${participant_id}/${chromosome}
+	    output_file=${output_dir}/blat_output_${unique_suffix}.psl
 	fi
-	# echo ./blat -minIdentity=${minIdentity:=90}  -maxIntron=${maxIntron:=300} ${target_file} hervs/${herv} ${output_file}
+    mkdir -p ${output_dir}
 	./blat -minIdentity=${minIdentity}  -maxIntron=${maxIntron:=300} ${target_file} hervs/${herv} ${output_file} > /dev/null
     if [ $participant_id != "ref" ]
 	then
-	    awk -v haplotype=${haplotype} -v threshold=${threshold} -v slack=${slack} -f find_matches.awk ${ref_output_file} ${output_file} | tee -a ${logfile} 
+	    awk -v haplotype=${haplotype} -v threshold=${threshold} -v slack=${slack} -f find_matches.awk ${ref_output_dir}/${ref_output_file} ${output_file} | tee -a ${logfile} 
 	fi
 
     # ! we don't seem to be using this at the moment. Review whether it is necessary and if so fix
@@ -131,11 +135,12 @@ delete_fasta=0
 participant_id=$1
 male=${male:-1}
 threshold=${threshold:=0.9}
-slack=${slack:=70000}
+slack=${slack:=100000}
 minIdentity=${minIdentity:=80}
-logfile="output/mismatches_${participant_id}.txt"
+logfile="results/mismatches_${participant_id}.txt"
 mkdir -p data
 mkdir -p output
+mkdir -p results
 
 if [ $participant_id = "ref" ]
 then
