@@ -5,17 +5,11 @@ The scripts here need to be run in a terminal window in a Jupyter app
 # Initial setup
 
 
-Also retrieve some hervs from genbank. This will put the fasta files in the all_hervs subdirectory.
-There will be some error messages printed, but some zero length files may result
-```
-cd all_hervs
-cat hervs_to_fetch_from_genbank | xargs -n 1 ./fetch_herv.sh
-cd ..
-```
+I have added all the herv fasta files from DFam to the github repository, so they are all avaliable in all_hervs directory.
 
 Pick some hervs to analyze and copy their fasta files from all_hervs to hervs directory e.g.
 ```
-cp all_hervs/AF164610.fa hervs
+cp all_hervs/DF000000174.fa hervs
 ```
 Decide which chromosomes you wish to analyze. There are two scripts; for just chr21, chr22 and chrY execute
 ```
@@ -43,5 +37,10 @@ This does two things
 - Retrieves the CRAM file for the participant (if necessary) and creates assemblies from it for the selected chromosomes. The fasta files of these assemblies are placed in the `data` subdirectory. These can also be used by RetroTector
 - Runs blat searches for the hervs present in the `hervs` subdirectory and compares the results with those obtained from the reference
 
-This will create output files in the output subdirectory with names starting with 'results'.
-Any that are non-empty will contain records for insertions or deletions.
+This will create output files in the results subdirectory named for the participant id e.g.
+```
+results/mismatches_1234567.txt
+```
+This has a pair of lines starting with "Match" for each match found between the reference and the participant. One showing the psl output for the reference and one for the participant. These are mostly for debugging to ensure that matches are being found! If there is a deletion, there will be a line starting "Deletion" with the psl output for the reference. If there is an insertion, there will be a line starting "Insertion" with the psl output for the participant.
+
+Note that repeated runs just append to this file, so for a fresh run, delete this file first.
