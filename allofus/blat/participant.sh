@@ -79,7 +79,7 @@ process_phase ()
 	then
 	  samtools index --threads 10 data/phased_${participant_id}_${chromosome}.${haplotype}.bam
       echo "Creating consensus assembly for $participant_id $chromosome"
-	  samtools consensus --threads 10 -a -r ${chromosome} -f fasta data/phased_${participant_id}_${chromosome}.${haplotype}.bam > data/fasta_${participant_id}_${chromosome}_${haplotype}.fa
+	  samtools consensus --threads 10 -a -C 0 -T hg38/${chromosome}.fa -r ${chromosome} -f fasta data/phased_${participant_id}_${chromosome}.${haplotype}.bam > data/fasta_${participant_id}_${chromosome}_${haplotype}.fa
 	  ./faToTwoBit data/fasta_${participant_id}_${chromosome}_${haplotype}.fa  data/fasta_${participant_id}_${chromosome}_${haplotype}.2bit
 	fi
 }
