@@ -7,8 +7,11 @@ The scripts here need to be run in a terminal window in a Jupyter app
 
 I have added all the herv fasta files from DFam to the github repository, so they are all avaliable in all_hervs directory.
 
-Pick some hervs to analyze and copy their fasta files from all_hervs to hervs directory e.g.
+Start in the herv-autism-analysis/allofus/blat directory
+
+Pick some hervs to analyze and copy their fasta files from all_hervs to hervs directory, having first created the hervs directory if necessary e.g.
 ```
+mkdir -p hervs
 cp all_hervs/DF000000174.fa hervs
 ```
 Decide which chromosomes you wish to analyze. There are two scripts; for just chr21, chr22 and chrY execute
