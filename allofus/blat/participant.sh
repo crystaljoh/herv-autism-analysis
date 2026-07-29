@@ -4,7 +4,12 @@ fetch_cram_if_necessary ()
     if [ ! -f data/wgs_${participant_id}.cram ]
     then
       echo "Fetching cram file for $participant_id"
-      gsutil -u $GOOGLE_PROJECT cp gs://vwb-aou-datasets-controlled/pooled/wgs/cram/*/wgs_$participant_id* data
+      gsutil -u $GOOGLE_PROJECT cp gs://vwb-aou-datasets-controlled/pooled/wgs/cram/*/wgs_${participant_id}.cram* data
+      if [ ! $? = 0 ]
+      then
+          echo  "No short read WGS data found for $participant_id"
+          exit 1
+      fi
     fi
 }
 
