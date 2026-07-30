@@ -60,14 +60,14 @@ This has a pair of lines starting with "Match" for each match found between the 
 
 Note that repeated runs just append to this file, so for a fresh run, delete this file first.
 
-By default, the cram file is retained so you don't have to refetch it if you run the same or a different analysis on the same participant. However this used up about 20GB per participant of the app's persistent disk. If you are processing a large number of participants, you will need to delete the cram files as you go along. Tp do this, set the environment variable 'delete_cram' to 1, before running the script
+By default, the cram file is retained so you don't have to refetch it if you run the same or a different analysis on the same participant. However this used up about 20GB per participant of the app's persistent disk. If you are processing a large number of participants, you will need to delete the cram files as you go along. To do this, set the environment variable 'delete_cram' to 1, before running the script
 ```
 export delete_cram=1
 ```
 
 # Running on many participants
 
-Create a file with one participant id per line, "aspergers_20_mails.txt" for example
+Create a file with one participant id per line, "aspergers_20_males.txt" for example
 
 Having seleted the chromosomes and HERVs to process as above, to run the script sequentially for all the participants in the file, type the following
 ```
