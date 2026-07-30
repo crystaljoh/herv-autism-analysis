@@ -86,7 +86,11 @@ process_phase ()
       echo "Creating consensus assembly for $participant_id $chromosome"
 	  samtools consensus --threads 10 -a -C 0 -T hg38/${chromosome}.fa -r ${chromosome} -f fasta data/phased_${participant_id}_${chromosome}.${haplotype}.bam > data/fasta_${participant_id}_${chromosome}_${haplotype}.fa
 	  ./faToTwoBit data/fasta_${participant_id}_${chromosome}_${haplotype}.fa  data/fasta_${participant_id}_${chromosome}_${haplotype}.2bit
-	fi
+    if [ $delete_fasta = 1 ]
+    then
+      delete_files data/fasta_${participant_id}_${chromosome}_${haplotype}.fa
+    fi
+fi
 }
 
 blat_herv ()
@@ -136,12 +140,13 @@ echolog ()
   echo $* | tee -a ${logfile}
 }
 
-delete_fasta=0
 participant_id=$1
 male=${male:-1}
 threshold=${threshold:=0.9}
 slack=${slack:=100000}
 minIdentity=${minIdentity:=80}
+delete_cram=${delete_cram:=0}
+delete_fasta=${delete_fasta:=1}
 logfile="results/mismatches_${participant_id}.txt"
 mkdir -p data
 mkdir -p output
@@ -169,8 +174,8 @@ for chromosome in ${chromosomes:?"must set chromosomes variable"} ; do
    fi
 done
 wait
-#if [ $generate = 1 ]
-#then
-#  delete_files data/wgs_$participant_id*
-#fi
+if [ $delete_cram = 1 ]
+then
+  delete_files data/wgs_${participant_id}.cram*
+fi
 echo "$participant_id" >> participant_completed
