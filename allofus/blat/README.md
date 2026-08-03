@@ -80,6 +80,20 @@ cat aspergers_20_males.txt | xargs -n 1 -P 2 ./participant.sh
 
 If it has 4 cpus, then set it to 4, etc.
 
+# Sharing results
+
+In order to avoid duplicating work, and to consolidate our results, I have created a shared workspace bucket resource called "shared_files"
+
+You can mount it in your app using this command
+```
+wb resource mount --id=shared_files
+```
+This will create a directory under workspace called shared_files i.e.
+```
+~/workspace/shared_files
+```
+Copy your mismatches results files there and any notes about ongoing or planned runs, so we don't end up doing the same processing more than once.
+
 # Directories used
 
 These are all subdirectories of blat
