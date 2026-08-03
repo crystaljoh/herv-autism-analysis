@@ -1,15 +1,14 @@
-fetch_cram_if_necessary ()
+check_cram_exists ()
 {
     local participant_id=$1
-    if [ ! -f data/wgs_${participant_id}.cram ]
+    if [ ! -d ~/workspace/srwgs ] 
     then
-      echo "Fetching cram file for $participant_id"
-      gsutil -u $GOOGLE_PROJECT cp gs://vwb-aou-datasets-controlled/pooled/wgs/cram/*/wgs_${participant_id}.cram* data
-      if [ ! $? = 0 ]
-      then
-          echo  "No short read WGS data found for $participant_id"
-          exit 1
-      fi
+        wb resource mount --id=srwgs
+    fi
+    if [ ! -f ~/workspace/srwgs/pooled/wgs/cram/v8_base/wgs_${participant_id}.cram ]
+    then
+        echo  "No short read WGS data found in cdrv8 for $participant_id"
+        exit 1
     fi
 }
 
@@ -22,9 +21,9 @@ process_chromosome ()
 	then
 	  if [ ! -f data/fasta_${participant_id}_${chromosome}_${haplotype}.2bit ]
 	  then
-        fetch_cram_if_necessary $participant_id
+        check_cram_exists $participant_id
         echo "Converting cram to bam for $participant_id $chromosome"
-	    samtools view -b --threads 10 -o data/bam_${participant_id}_${chromosome}.bam -T hg38/Homo_sapiens_assembly38.fasta data/wgs_${participant_id}.cram $chromosome
+	    samtools view -b --threads 10 -o data/bam_${participant_id}_${chromosome}.bam -T hg38/Homo_sapiens_assembly38.fasta ~/workspace/srwgs/pooled/wgs/cram/v8_base/wgs_${participant_id}.cram $chromosome
         echo "Phasing  $participant_id $chromosome"
 	    samtools phase -b data/phased_${participant_id}_${chromosome} data/bam_${participant_id}_${chromosome}.bam > data/samphase_${participant_id}_${chromosome}.log
 	    process_phase $participant_id $chromosome 0 &
@@ -53,9 +52,9 @@ process_male_chromosome ()
 	then
 	  if [ ! -f data/fasta_${participant_id}_${chromosome}_${haplotype}.2bit ]
 	  then
-        fetch_cram_if_necessary $participant_id
+        check_cram_exists $participant_id
         echo "Converting cram to bam for $participant_id $chromosome"
-	    samtools view -b --threads 10 -o data/phased_${participant_id}_${chromosome}.${haplotype}.bam -T hg38/Homo_sapiens_assembly38.fasta data/wgs_${participant_id}.cram $chromosome
+	    samtools view -b --threads 10 -o data/phased_${participant_id}_${chromosome}.${haplotype}.bam -T hg38/Homo_sapiens_assembly38.fasta ~/workspace/srwgs/pooled/wgs/cram/v8_base/wgs_${participant_id}.cram $chromosome
  	    process_phase $participant_id $chromosome $haplotype
 	    delete_files data/phased_${participant_id}_${chromosome}*
 	  fi
@@ -145,7 +144,6 @@ male=${male:-1}
 threshold=${threshold:=0.9}
 slack=${slack:=100000}
 minIdentity=${minIdentity:=80}
-delete_cram=${delete_cram:=0}
 delete_fasta=${delete_fasta:=1}
 logfile="results/mismatches_${participant_id}.txt"
 mkdir -p data
@@ -174,8 +172,4 @@ for chromosome in ${chromosomes:?"must set chromosomes variable"} ; do
    fi
 done
 wait
-if [ $delete_cram = 1 ]
-then
-  delete_files data/wgs_${participant_id}.cram*
-fi
 echo "$participant_id" >> participant_completed
