@@ -49,7 +49,7 @@ Then you can run the script for a particular participant, e.g. for 1234567
 ./participant.sh 1234567
 ```
 This does two things
-- Retrieves the CRAM file for the participant (if necessary) and creates assemblies from it for the selected chromosomes. The fasta files of these assemblies are placed in the `data` subdirectory. These can also be used by RetroTector
+- Creates assemblies from the participant's cram file for the selected chromosomes. The fasta files of these assemblies are placed in the `data` subdirectory. These can also be used by RetroTector
 - Runs blat searches for the hervs present in the `hervs` subdirectory and compares the results with those obtained from the reference
 
 This will create output files in the results subdirectory named for the participant id e.g.
@@ -60,10 +60,7 @@ This has a pair of lines starting with "Match" for each match found between the 
 
 Note that repeated runs just append to this file, so for a fresh run, delete this file first.
 
-By default, the cram file is retained so you don't have to refetch it if you run the same or a different analysis on the same participant. However this used up about 20GB per participant of the app's persistent disk. If you are processing a large number of participants, you will need to delete the cram files as you go along. To do this, set the environment variable 'delete_cram' to 1, before running the script
-```
-export delete_cram=1
-```
+The script no longer copies the cram file to the local disk, so there is no need to choose whether or not to delete a local copy.
 
 # Running on many participants
 
