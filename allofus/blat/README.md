@@ -39,6 +39,10 @@ If the participant is female, you must tell the script. You do this by setting t
 ```
 export male=0
 ```
+Also, the female karyotype does not contain any Y chromosome, so you must use a different script to set up the complete set of chromosomes
+```
+source ./all_female_chromosomes.sh
+```
 If you subsequently want to process a male participant, you will have to set the variable back to 1
 ```
 export male=1
