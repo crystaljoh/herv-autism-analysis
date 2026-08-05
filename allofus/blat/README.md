@@ -106,7 +106,7 @@ These are all subdirectories of blat
 
 - hervs hold the HERV fasta files we want to search for. Copy files from the all_hervs directory as desired.
 
-- data holds the cram files, and converted fasta and 2bit files for the participants that have been processed. Once you have finished with a participant, you can delete all the files for that participant in this directory. You can also delete the cram files once you have converted all the chromosomes you are interested in for that participant, because they are large. You can also delete the .fa files at any time, unless you are also using RetroTector, since all that the blat workflow uses is the .2bit files.
+- data holds the cram files, and converted fasta and 2bit files for the participants that have been processed. Once you have finished with a participant, you can delete all the files for that participant in this directory. 
 
 - output holds the psl files produced by blat. These are only of interest if investigating an apparent HERV deletion or insertion.
 
