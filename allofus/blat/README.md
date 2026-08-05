@@ -53,8 +53,14 @@ Then you can run the script for a particular participant, e.g. for 1234567
 ./participant.sh 1234567
 ```
 This does two things
-- Creates assemblies from the participant's cram file for the selected chromosomes. The fasta files of these assemblies are placed in the `data` subdirectory. These can also be used by RetroTector
-- Runs blat searches for the hervs present in the `hervs` subdirectory and compares the results with those obtained from the reference
+1 Creates assemblies from the participant's cram file for the selected chromosomes. The fasta files of these assemblies are placed in the `data` subdirectory. These can also be used by RetroTector
+
+If the script quickly, reporting "No short read WGS data found in cdrv8 for 1234567" first verify that the participant does come from a cohort with srWGS data. If it does, then trying remounting the srwgs shared resource by issuing the following command:
+```
+wb resource unmount --id=srwgs
+```
+
+2 Runs blat searches for the hervs present in the `hervs` subdirectory and compares the results with those obtained from the reference
 
 This will create output files in the results subdirectory named for the participant id e.g.
 ```
