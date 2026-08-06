@@ -115,7 +115,7 @@ blat_herv ()
 	    output_file=${output_dir}/blat_output_${unique_suffix}.psl
 	fi
     mkdir -p ${output_dir}
-	./blat -minIdentity=${minIdentity}  -maxIntron=${maxIntron:=300} ${target_file} hervs/${herv} ${output_file} > /dev/null
+	./blat -minIdentity=${minIdentity}  -maxIntron=${maxIntron} ${target_file} hervs/${herv} ${output_file} > /dev/null
     if [ $participant_id != "ref" ]
 	then
 	    awk -v haplotype=${haplotype} -v threshold=${threshold} -v slack=${slack} -f find_matches.awk ${ref_output_dir}/${ref_output_file} ${output_file} | tee -a ${logfile} 
@@ -144,6 +144,7 @@ male=${male:-1}
 threshold=${threshold:=0.9}
 slack=${slack:=100000}
 minIdentity=${minIdentity:=80}
+maxIntron=${maxIntron:=400}
 delete_fasta=${delete_fasta:=1}
 logfile="results/mismatches_${participant_id}.txt"
 mkdir -p data
@@ -155,7 +156,7 @@ then
   ./get_ref.sh
 fi
 
-echolog "Processing participant $participant_id minIdentity ${minIdentity} threshold ${threshold} slack ${slack}"
+echolog "Processing participant $participant_id minIdentity ${minIdentity} maxIntron ${maxIntron} threshold ${threshold} slack ${slack}"
 echolog "Chromosomes ${chromosomes}"
 # Keep this in sync with find_matches.awk if we change the fields we output
 echolog "Fields in PSL format output are"
