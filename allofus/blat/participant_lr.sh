@@ -33,9 +33,12 @@ process_chromosome ()
         fi
 	    process_phase $participant_id $chromosome 1
 	    wait
-	    delete_files data/samphase_${participant_id}_${chromosome}.log
-	    delete_files data/bam_${participant_id}_${chromosome}.bam*
-	    delete_files data/phased_${participant_id}_${chromosome}*
+        if [ $long_reads = 0 ]
+        then
+     	    delete_files data/samphase_${participant_id}_${chromosome}.log
+    	    delete_files data/bam_${participant_id}_${chromosome}.bam*
+    	    delete_files data/phased_${participant_id}_${chromosome}*
+        fi
 	  fi
     fi
 	if [ $long_reads = 1 ]
@@ -167,7 +170,7 @@ minIdentity=${minIdentity:=80}
 maxIntron=${maxIntron:=400}
 delete_fasta=${delete_fasta:=1}
 long_reads=${long_reads:=0}
-logfile="results/mismatches_${participant_id}.txt"
+logfile="results/mismatches_only_${participant_id}.txt"
 echo "long reads ${long_reads}"
 mkdir -p data
 mkdir -p output
