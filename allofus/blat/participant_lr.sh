@@ -102,6 +102,8 @@ process_phase ()
     	    # samtools view -b  -o data/phased_${participant_id}_${chromosome}.${haplotype}.bam ~/workspace/srwgs/pooled/longreads/v9_delta/BCM/pacbio/alignments/${participant_id}/GRCh38/${participant_id}-asm_h${haplotype}.minimap2.bam $chromosome
         	# samtools index data/phased_${participant_id}_${chromosome}.${haplotype}.bam
             samtools consensus -f fasta -X hifi -aa -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.fa ~/workspace/srwgs/pooled/longreads/v9_delta/BCM/pacbio/alignments/${participant_id}/GRCh38/${participant_id}-asm_h${haplotype}.minimap2.bam
+            # show insertions and deletions for creating chain file
+            samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ~/workspace/srwgs/pooled/longreads/v9_delta/BCM/pacbio/alignments/${participant_id}/GRCh38/${participant_id}-asm_h${haplotype}.minimap2.bam
         else
         	samtools index data/phased_${participant_id}_${chromosome}.${haplotype}.bam
             echo "Creating consensus assembly for $participant_id $chromosome"
