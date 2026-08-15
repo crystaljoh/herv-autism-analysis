@@ -1,8 +1,10 @@
 BEGIN {
-    in_deletion = 1
-    in_insertion = 1
-    reference_position = 1
-    participant_position = 1
+    deletion = "deletion"
+    insertion = "insertion"
+    alignment = "alignment"
+    state = "begin"
+    reference_position = 0
+    participant_position = 0
 }
 {
     if (NR == 1) {
@@ -13,26 +15,29 @@ BEGIN {
         base = substr($0, i, 1)
         if (base == "*") {
             # deletion
-            in_deletion = 1
+            next_state = deletion
             reference_position++
         } else if (base == "_") {
             # insertion
             i++
             printf "%s", substr($0, i, 1)
             participant_position++
-            in_insertion = 1
+            next_state = insertion
         }
         else {
             # alignment
             printf "%s", base
-            if ((in_deletion == 1) || (in_insertion == 1))  {
-                in_deletion = 0
-                in_insertion = 0
-                print participant_position, reference_position > offsets_file 
-            }
+            next_state = alignment
             reference_position++
             participant_position++
         }
+        if (state != next_state)  {
+            print participant_position, reference_position, state, "->", next_state > offsets_file 
+            state = next_state
+        }
     }
     printf "%s", ORS
+}
+END {
+    print participant_position, reference_position, state, "end" > offsets_file 
 }

@@ -98,13 +98,11 @@ process_phase ()
 	then
         if [ $long_reads = 1 ]
         then
-            # directly running consensus seems to exit "Killed" for larger chromosomes
-    	    # samtools view -b  -o data/phased_${participant_id}_${chromosome}.${haplotype}.bam ~/workspace/srwgs/pooled/longreads/v9_delta/BCM/pacbio/alignments/${participant_id}/GRCh38/${participant_id}-asm_h${haplotype}.minimap2.bam $chromosome
-        	# samtools index data/phased_${participant_id}_${chromosome}.${haplotype}.bam
-            samtools consensus -f fasta -X hifi -aa -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.fa ~/workspace/srwgs/pooled/longreads/v9_delta/BCM/pacbio/alignments/${participant_id}/GRCh38/${participant_id}-asm_h${haplotype}.minimap2.bam
-            # show insertions and deletions for creating chain file
+            # show insertions and deletions for creating offsets file
             samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ~/workspace/srwgs/pooled/longreads/v9_delta/BCM/pacbio/alignments/${participant_id}/GRCh38/${participant_id}-asm_h${haplotype}.minimap2.bam
-        else
+            # create offsets file and strip deletions and insertion markings from fasta
+            awk -v offsets_file="data/fasta_${participant_id}_${chromosome}_${haplotype}_offsets.txt" -f calculate_offsets.awk data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa > data/fasta_${participant_id}_${chromosome}_${haplotype}.fa
+       else
         	samtools index data/phased_${participant_id}_${chromosome}.${haplotype}.bam
             echo "Creating consensus assembly for $participant_id $chromosome"
         	samtools consensus -a -C 0 -T hg38/${chromosome}.fa -r ${chromosome} -f fasta data/phased_${participant_id}_${chromosome}.${haplotype}.bam > data/fasta_${participant_id}_${chromosome}_${haplotype}.fa
@@ -143,7 +141,8 @@ blat_herv ()
 	./blat -minIdentity=${minIdentity}  -maxIntron=${maxIntron} ${target_file} hervs/${herv} ${output_file} > /dev/null
     if [ $participant_id != "ref" ]
 	then
-	    awk -v haplotype=${haplotype} -v threshold=${threshold} -v slack=${slack} -f find_matches.awk ${ref_output_dir}/${ref_output_file} ${output_file} | tee -a ${logfile} 
+    offsets_file="data/fasta_${participant_id}_${chromosome}_${haplotype}_offsets.txt"	    
+    awk -v haplotype=${haplotype} -v threshold=${threshold} -v slack=${slack} -f find_matches_with_offsets.awk $offsets_file ${ref_output_dir}/${ref_output_file} ${output_file} | tee -a ${logfile} 
 	fi
 
     # ! we don't seem to be using this at the moment. Review whether it is necessary and if so fix
