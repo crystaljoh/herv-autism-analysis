@@ -29,6 +29,7 @@ function abs(a)
 	return a
 }
 {
+    header_lines_to_skip = 5
     if (FILENAME == ARGV[1]) {
         # first file is the offsets
         par_offset[FNR] = $1
@@ -37,53 +38,65 @@ function abs(a)
     }
     else if (FILENAME == ARGV[2]) {
     	# second file is the reference
+        if (FNR <= header_lines_to_skip) next
+        line = FNR - header_lines_to_skip
     	for (i = 1; i <= 18; i++) {
-    	    ref[FNR,i] = $i
+    	    ref[line,i] = $i
     	}
-    	ref_size = FNR
-    	ref_matched[FNR] = 0
-    	ref_line[FNR] = $0
+    	ref_size = line
+    	ref_matched[line] = 0
+    	ref_line[line] = $0
     }
     else {
         # second file is participant
+        if (FNR <= header_lines_to_skip) next
+        line = FNR - header_lines_to_skip
     	for (i = 1; i <= 18; i++) {
-    	    par[FNR,i] = $i
+    	    par[line,i] = $i
     	}
-    	par_size = FNR
-    	par_matched[FNR] = 0
-    	par_line[FNR] = $0
+    	par_size = line
+    	par_matched[line] = 0
+    	par_line[line] = $0
         # find reference offset for participant
-        # linear search inefficient - switch to binary search
-        for (ind = 1; ind < offset_size; ind++) {
-            if ((par_offset[ind] <= $16) && (par_offset[ind+1] > $16)) {
-                adjusted_pos[FNR] = $16 + ref_offset[ind] - par_offset[ind]
-                break
+        # binary search
+        lower_ind = 1
+        upper_ind = offset_size-1
+        while (lower_ind <= upper_ind) {
+            ind =  lower_ind + int((upper_ind - lower_ind) /2)
+            if (par_offset[ind] > $16) {
+                upper_ind = ind - 1
+            }
+            else if (par_offset[ind+1] > $16) break
+            else {
+                lower_ind = ind + 1
             }
         }
+        adjusted_pos[line] = $16 + ref_offset[ind] - par_offset[ind]
+
         # participant alignment matching bases / herv length > threshold
         # and the range of the alignment is less than twice the herv length
     	if ((($1 / $11) > threshold) && (($17 - $16) < (2 * $11))) {
-        	par_matched[FNR] = 0
+        	par_matched[line] = 0
         	for (i = 1; i <= ref_size; i++) {
                 # ref alignment not already matched
                 # and within slack of the participant alignment
                 # and ref alignment matching bases at least half of the threshold
-        	    if ((ref_matched[i] == 0) && (abs(ref[i,16] - adjusted_pos[FNR]) < slack) && ((ref[i,1] / ref[i,11]) > (threshold / 2))) {
-            		par_matched[FNR] = 1
+        	    if ((ref_matched[i] == 0) && (abs(ref[i,16] - adjusted_pos[line]) < slack) && ((ref[i,1] / ref[i,11]) > (threshold / 2))) {
+            		par_matched[line] = 1
         	        ref_matched[i] = 1
             		break
         	    }
         	}
-            if (par_matched[FNR] == 0) {
+            if (par_matched[line] == 0) {
         	    printf "%s%s", "Insertion", OFS
                 for(j=1; j<=18; j++) printf "%s%s", $j, OFS
-                printf "%s%s", adjusted_pos[FNR], OFS
+                printf "%s%s", adjusted_pos[line], OFS
                 printf "%s%s", haplotype, ORS
             }
             else {
                 printf "%s%s", "Match par", OFS
                 for(j=1; j<=18; j++) printf "%s%s", $j, OFS
-                printf "%s%s", adjusted_pos[FNR], OFS
+                printf "%s%s", adjusted_pos[line], OFS
                 printf "%s%s", haplotype, ORS
     	        printf "%s%s", "and      ", OFS
                 for(j=1; j<=18; j++) printf "%s%s", ref[i,j], OFS
