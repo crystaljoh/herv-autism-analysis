@@ -8,7 +8,12 @@ BEGIN {
 }
 {
     if (NR == 1) {
+        # print the firt header line, do not process
         print $0
+        next
+    }
+    if (substr($0, 1, 1) == ">") {
+        # skip any internal header lines
         next
     }
     for (i = 1; i <= length; i++) {

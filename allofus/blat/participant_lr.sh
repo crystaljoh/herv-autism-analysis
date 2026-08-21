@@ -99,7 +99,14 @@ process_phase ()
         if [ $long_reads = 1 ]
         then
             # show insertions and deletions for creating offsets file
-            samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ~/workspace/srwgs/pooled/longreads/v9_delta/BCM/pacbio/alignments/${participant_id}/GRCh38/${participant_id}-asm_h${haplotype}.minimap2.bam
+            if [ $chromosome = "chr1" ]
+            then
+                # chr1 has to be done in two parts otherwise consensus OOMs
+                samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome}:1-130000000 -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ~/workspace/srwgs/pooled/longreads/v9_delta/BCM/pacbio/alignments/${participant_id}/GRCh38/${participant_id}-asm_h${haplotype}.minimap2.bam
+                samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome}:130000001 ~/workspace/srwgs/pooled/longreads/v9_delta/BCM/pacbio/alignments/${participant_id}/GRCh38/${participant_id}-asm_h${haplotype}.minimap2.bam >> data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa 
+            else
+                samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ~/workspace/srwgs/pooled/longreads/v9_delta/BCM/pacbio/alignments/${participant_id}/GRCh38/${participant_id}-asm_h${haplotype}.minimap2.bam
+            fi
             # create offsets file and strip deletions and insertion markings from fasta
             awk -v offsets_file="data/fasta_${participant_id}_${chromosome}_${haplotype}_offsets.txt" -f calculate_offsets.awk data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa > data/fasta_${participant_id}_${chromosome}_${haplotype}.fa
        else
@@ -110,7 +117,7 @@ process_phase ()
 	  ./faToTwoBit data/fasta_${participant_id}_${chromosome}_${haplotype}.fa  data/fasta_${participant_id}_${chromosome}_${haplotype}.2bit
     if [ $delete_fasta = 1 ]
     then
-      delete_files data/fasta_${participant_id}_${chromosome}_${haplotype}.fa
+      delete_files data/fasta_${participant_id}_${chromosome}_${haplotype}.*fa
     fi
 fi
 }
@@ -138,19 +145,15 @@ blat_herv ()
 	    output_file=${output_dir}/blat_output_${unique_suffix}.psl
 	fi
     mkdir -p ${output_dir}
-	./blat -minIdentity=${minIdentity}  -maxIntron=${maxIntron} ${target_file} hervs/${herv} ${output_file} > /dev/null
+	if [ $doblat = 1 ]
+    then
+        ./blat -minIdentity=${minIdentity}  -maxIntron=${maxIntron} ${target_file} hervs/${herv} ${output_file} > /dev/null
+    fi
     if [ $participant_id != "ref" ]
 	then
     offsets_file="data/fasta_${participant_id}_${chromosome}_${haplotype}_offsets.txt"	    
     awk -v haplotype=${haplotype} -v threshold=${threshold} -v slack=${slack} -f find_matches_with_offsets.awk $offsets_file ${ref_output_dir}/${ref_output_file} ${output_file} | tee -a ${logfile} 
-	fi
-
-    # ! we don't seem to be using this at the moment. Review whether it is necessary and if so fix
-	# only alignments that match nearly all the query
-    # start in query must be near the start and end in query must be near the end
-	# additionally the size of the base gaps in the query must be low
-	# awk 'NR<6 || ($12 < 11 && $13 > $11 - 11 && $6 < 200 )'  ${output_file} > ${output_file}.awked
-	
+	fi	
 }
 
 delete_files ()
@@ -166,11 +169,12 @@ echolog ()
 participant_id=$1
 male=${male:-1}
 threshold=${threshold:=0.9}
-slack=${slack:=100000}
+slack=${slack:=1000}
 minIdentity=${minIdentity:=80}
 maxIntron=${maxIntron:=400}
 delete_fasta=${delete_fasta:=1}
-long_reads=${long_reads:=0}
+long_reads=${long_reads:=1}
+doblat=${doblat:=1}
 logfile="results/mismatches_only_${participant_id}.txt"
 echo "long reads ${long_reads}"
 mkdir -p data
