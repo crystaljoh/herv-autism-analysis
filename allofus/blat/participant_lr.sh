@@ -1,3 +1,21 @@
+check_long_read_bam_exists ()
+{
+    local participant_id=$1
+    read -r hap1 hap2 <<< $(awk  -v participant_id=${participant_id} '{ if (($1 == participant_id))  {print $8, $14 }}' ~/workspace/srwgs/v9/wgs/long_read/manifest.tsv)
+    if [[ $hap1 = "" || $hap1 = "NA" ]]
+    then
+        echo "lrWGS not found for participant $pariticipant_id"
+        exit 1
+    fi
+    hap[1]=${hap1/gs:\/\/vwb-aou-datasets-controlled/\/home\/jupyter\/workspace\/srwgs}
+    hap[2]=${hap2/gs:\/\/vwb-aou-datasets-controlled/\/home\/jupyter\/workspace\/srwgs}
+    if [[ ! -f ${hap[1]} ]]
+    then
+        echo " Did not find ${hap[1]}"
+        exit 1
+    fi
+}
+
 check_cram_exists ()
 {
     local participant_id=$1
@@ -98,14 +116,36 @@ process_phase ()
 	then
         if [ $long_reads = 1 ]
         then
-            # show insertions and deletions for creating offsets file
-            if [ $chromosome = "chr1" ]
+            check_long_read_bam_exists $participant_id
+            if [[ ${haplotype} = "1" ]]
             then
-                # chr1 has to be done in two parts otherwise consensus OOMs
-                samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome}:1-130000000 -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ~/workspace/srwgs/pooled/longreads/v9_delta/BCM/pacbio/alignments/${participant_id}/GRCh38/${participant_id}-asm_h${haplotype}.minimap2.bam
-                samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome}:130000001 ~/workspace/srwgs/pooled/longreads/v9_delta/BCM/pacbio/alignments/${participant_id}/GRCh38/${participant_id}-asm_h${haplotype}.minimap2.bam >> data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa 
+                bam_file=${hap[1]}
             else
-                samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ~/workspace/srwgs/pooled/longreads/v9_delta/BCM/pacbio/alignments/${participant_id}/GRCh38/${participant_id}-asm_h${haplotype}.minimap2.bam
+                bam_file=${hap[2]}
+            fi
+            if [ $chromosome = "blah" ]
+            then
+                # experiments to narrow down the region in chr1 with the memory problem
+                # limit virtual memory size
+                ulimit -v 10000000
+                # disable core dumps
+                ulimit -c 0
+                # chr1 has to be done in multiple parts otherwise consensus OOMs
+                samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome}:143100001-143150000 -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ${bam_file}
+                if [ $? != 0 ]; then echolog "Consensus building failed for ${participant_id} ${chromosome} ${haplotype}"; return 1; fi
+                samtools consensus -T hg38/${chromosome}.fa -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome}:143150001-143200000 ${bam_file} >> data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa 
+                if [ $? != 0 ]; then echolog "Consensus building failed for ${participant_id} ${chromosome} ${haplotype}"; return 1; fi
+                samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome}:143000001-145000000 ${bam_file} >> data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa 
+                if [ $? != 0 ]; then echolog "Consensus building failed for ${participant_id} ${chromosome} ${haplotype}"; return 1; fi
+            else
+                # limit virtual memory size
+                ulimit -v 10000000
+                # disable core dumps
+                ulimit -c 0
+                # show insertions and deletions for creating offsets file
+                # filter out supplementary alignments because they cause excessive memory use - TBD if this will cause problems with the consensus
+               samtools consensus -f fasta -X hifi -aa --excl-flags SUPPLEMENTARY --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ${bam_file}
+                if [ $? != 0 ]; then echolog "Consensus building failed for ${participant_id} ${chromosome} ${haplotype}"; return 1; fi
             fi
             # create offsets file and strip deletions and insertion markings from fasta
             awk -v offsets_file="data/fasta_${participant_id}_${chromosome}_${haplotype}_offsets.txt" -f calculate_offsets.awk data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa > data/fasta_${participant_id}_${chromosome}_${haplotype}.fa
@@ -145,6 +185,7 @@ blat_herv ()
 	    output_file=${output_dir}/blat_output_${unique_suffix}.psl
 	fi
     mkdir -p ${output_dir}
+	if [ ! -f ${target_file} ]; then echo "Skipping blat because ${target_file} missing"; return 1; fi
 	if [ $doblat = 1 ]
     then
         ./blat -minIdentity=${minIdentity}  -maxIntron=${maxIntron} ${target_file} hervs/${herv} ${output_file} > /dev/null
