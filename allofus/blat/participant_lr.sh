@@ -1,3 +1,5 @@
+#!/bin/bash
+
 check_long_read_bam_exists ()
 {
     local participant_id=$1
@@ -87,9 +89,12 @@ process_male_chromosome ()
             check_cram_exists $participant_id
             echo "Converting cram to bam for $participant_id $chromosome"
     	    samtools view -b --threads 10 -o data/phased_${participant_id}_${chromosome}.${haplotype}.bam -T hg38/Homo_sapiens_assembly38.fasta ~/workspace/srwgs/pooled/wgs/cram/v8_base/wgs_${participant_id}.cram $chromosome
-        fi
+        fi        
  	    process_phase $participant_id $chromosome $haplotype
-	    delete_files data/phased_${participant_id}_${chromosome}*
+	    if [ $long_reads = 0 ]
+        then
+            delete_files data/phased_${participant_id}_${chromosome}*
+        fi
 	  fi
     fi
     blat_phase $participant_id $chromosome 0
@@ -123,30 +128,14 @@ process_phase ()
             else
                 bam_file=${hap[2]}
             fi
-            if [ $chromosome = "blah" ]
-            then
-                # experiments to narrow down the region in chr1 with the memory problem
-                # limit virtual memory size
-                ulimit -v 10000000
-                # disable core dumps
-                ulimit -c 0
-                # chr1 has to be done in multiple parts otherwise consensus OOMs
-                samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome}:143100001-143150000 -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ${bam_file}
-                if [ $? != 0 ]; then echolog "Consensus building failed for ${participant_id} ${chromosome} ${haplotype}"; return 1; fi
-                samtools consensus -T hg38/${chromosome}.fa -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome}:143150001-143200000 ${bam_file} >> data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa 
-                if [ $? != 0 ]; then echolog "Consensus building failed for ${participant_id} ${chromosome} ${haplotype}"; return 1; fi
-                samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome}:143000001-145000000 ${bam_file} >> data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa 
-                if [ $? != 0 ]; then echolog "Consensus building failed for ${participant_id} ${chromosome} ${haplotype}"; return 1; fi
-            else
-                # limit virtual memory size
-                ulimit -v 10000000
-                # disable core dumps
-                ulimit -c 0
-                # show insertions and deletions for creating offsets file
-                # filter out supplementary alignments because they cause excessive memory use - TBD if this will cause problems with the consensus
-               samtools consensus -f fasta -X hifi -aa --excl-flags SUPPLEMENTARY --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ${bam_file}
-                if [ $? != 0 ]; then echolog "Consensus building failed for ${participant_id} ${chromosome} ${haplotype}"; return 1; fi
-            fi
+            # limit virtual memory size
+            ulimit -v 10000000
+            # disable core dumps
+            ulimit -c 0
+            # show insertions and deletions for creating offsets file
+            # filter out supplementary alignments because they cause excessive memory use - TBD if this will cause problems with the consensus
+            samtools consensus -f fasta -X hifi -aa --excl-flags SUPPLEMENTARY --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ${bam_file}
+            if [ $? != 0 ]; then echolog "Consensus building failed for ${participant_id} ${chromosome} ${haplotype}"; return 1; fi
             # create offsets file and strip deletions and insertion markings from fasta
             awk -v offsets_file="data/fasta_${participant_id}_${chromosome}_${haplotype}_offsets.txt" -f calculate_offsets.awk data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa > data/fasta_${participant_id}_${chromosome}_${haplotype}.fa
        else
@@ -217,7 +206,6 @@ delete_fasta=${delete_fasta:=1}
 long_reads=${long_reads:=1}
 doblat=${doblat:=1}
 logfile="results/mismatches_only_${participant_id}.txt"
-echo "long reads ${long_reads}"
 mkdir -p data
 mkdir -p output
 mkdir -p results
