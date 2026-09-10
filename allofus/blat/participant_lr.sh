@@ -133,9 +133,17 @@ process_phase ()
             # disable core dumps
             ulimit -c 0
             # show insertions and deletions for creating offsets file
-            # filter out supplementary alignments because they cause excessive memory use - TBD if this will cause problems with the consensus
-            samtools consensus -f fasta -X hifi -aa --excl-flags SUPPLEMENTARY --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ${bam_file}
+            samtools view -h -o temp1.sam ${bam_file} ${chromosome} 
+            awk -v OFS='\t' -f soft2hard.awk temp1.sam > temp.sam
+            samtools view -h -bo temp.bam temp.sam
+            samtools index temp.bam
+            samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa temp.bam
+            # rm temp.sam temp.bam
             if [ $? != 0 ]; then echolog "Consensus building failed for ${participant_id} ${chromosome} ${haplotype}"; return 1; fi
+            
+            # filter out supplementary alignments because they cause excessive memory use - TBD if this will cause problems with the consensus
+            # samtools consensus -f fasta -X hifi -aa --excl-flags SUPPLEMENTARY --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ${bam_file}
+            # if [ $? != 0 ]; then echolog "Consensus building failed for ${participant_id} ${chromosome} ${haplotype}"; return 1; fi
             # create offsets file and strip deletions and insertion markings from fasta
             awk -v offsets_file="data/fasta_${participant_id}_${chromosome}_${haplotype}_offsets.txt" -f calculate_offsets.awk data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa > data/fasta_${participant_id}_${chromosome}_${haplotype}.fa
        else
