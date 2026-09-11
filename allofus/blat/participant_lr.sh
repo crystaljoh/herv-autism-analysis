@@ -35,15 +35,15 @@ process_chromosome ()
     local haplotype=0
 	if [ ! $participant_id = "ref" ]
 	then
-	  if [ ! -f data/fasta_${participant_id}_${chromosome}_${haplotype}.2bit ]
+	  if [ ! -f data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}.2bit ]
 	  then
         if [ $long_reads = 0 ]
         then
             check_cram_exists $participant_id
             echo "Converting cram to bam for $participant_id $chromosome"
-    	    samtools view -b --threads 10 -o data/bam_${participant_id}_${chromosome}.bam -T hg38/Homo_sapiens_assembly38.fasta ~/workspace/srwgs/pooled/wgs/cram/v8_base/wgs_${participant_id}.cram $chromosome
+    	    samtools view -b --threads 10 -o data/${participant_id}/bam_${participant_id}_${chromosome}.bam -T hg38/Homo_sapiens_assembly38.fasta ~/workspace/srwgs/pooled/wgs/cram/v8_base/wgs_${participant_id}.cram $chromosome
             echo "Phasing  $participant_id $chromosome"
-    	    samtools phase -b data/phased_${participant_id}_${chromosome} data/bam_${participant_id}_${chromosome}.bam > data/samphase_${participant_id}_${chromosome}.log
+    	    samtools phase -b data/${participant_id}/phased_${participant_id}_${chromosome} data/${participant_id}/bam_${participant_id}_${chromosome}.bam > data/${participant_id}/samphase_${participant_id}_${chromosome}.log
         fi
 	    if [ $long_reads = 1 ]
         then
@@ -55,9 +55,9 @@ process_chromosome ()
 	    wait
         if [ $long_reads = 0 ]
         then
-     	    delete_files data/samphase_${participant_id}_${chromosome}.log
-    	    delete_files data/bam_${participant_id}_${chromosome}.bam*
-    	    delete_files data/phased_${participant_id}_${chromosome}*
+     	    delete_files data/${participant_id}/samphase_${participant_id}_${chromosome}.log
+    	    delete_files data/${participant_id}/bam_${participant_id}_${chromosome}.bam*
+    	    delete_files data/${participant_id}/phased_${participant_id}_${chromosome}*
         fi
 	  fi
     fi
@@ -82,18 +82,18 @@ process_male_chromosome ()
 	local haplotype=0
 	if [ ! $participant_id = "ref" ]
 	then
-	  if [ ! -f data/fasta_${participant_id}_${chromosome}_${haplotype}.2bit ]
+	  if [ ! -f data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}.2bit ]
 	  then
         if [ $long_reads = 0 ]
         then
             check_cram_exists $participant_id
             echo "Converting cram to bam for $participant_id $chromosome"
-    	    samtools view -b --threads 10 -o data/phased_${participant_id}_${chromosome}.${haplotype}.bam -T hg38/Homo_sapiens_assembly38.fasta ~/workspace/srwgs/pooled/wgs/cram/v8_base/wgs_${participant_id}.cram $chromosome
+    	    samtools view -b --threads 10 -o data/${participant_id}/phased_${participant_id}_${chromosome}.${haplotype}.bam -T hg38/Homo_sapiens_assembly38.fasta ~/workspace/srwgs/pooled/wgs/cram/v8_base/wgs_${participant_id}.cram $chromosome
         fi        
  	    process_phase $participant_id $chromosome $haplotype
 	    if [ $long_reads = 0 ]
         then
-            delete_files data/phased_${participant_id}_${chromosome}*
+            delete_files data/${participant_id}/phased_${participant_id}_${chromosome}*
         fi
 	  fi
     fi
@@ -117,7 +117,7 @@ process_phase ()
 	local chromosome=$2
 	local haplotype=$3
 	local unique_suffix=$1_$2_$3
-	if [ ! -f data/fasta_${participant_id}_${chromosome}_${haplotype}.2bit ]
+	if [ ! -f data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}.2bit ]
 	then
         if [ $long_reads = 1 ]
         then
@@ -133,7 +133,7 @@ process_phase ()
             # disable core dumps
             ulimit -c 0
             # Try the quick way first
-            samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ${bam_file}
+            samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ${bam_file}
             # If that fails, convert soft-clip to hard first 
             if [ $? != 0 ]
             then
@@ -141,20 +141,20 @@ process_phase ()
                 awk -v OFS='\t' -f soft2hard.awk ${unique_suffix}_soft.sam > ${unique_suffix}_hard.sam
                 samtools view -h -bo ${unique_suffix}_hard.bam ${unique_suffix}_hard.sam
                 samtools index ${unique_suffix}_hard.bam
-                samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ${unique_suffix}_hard.bam
+                samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ${unique_suffix}_hard.bam
                 rm ${unique_suffix}_soft.* ${unique_suffix}_hard.*
             fi
             # create offsets file and strip deletions and insertion markings from fasta
-            awk -v offsets_file="data/fasta_${participant_id}_${chromosome}_${haplotype}_offsets.txt" -f calculate_offsets.awk data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa > data/fasta_${participant_id}_${chromosome}_${haplotype}.fa
+            awk -v offsets_file="data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}_offsets.txt" -f calculate_offsets.awk data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa > data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}.fa
        else
-        	samtools index data/phased_${participant_id}_${chromosome}.${haplotype}.bam
+        	samtools index data/${participant_id}/phased_${participant_id}_${chromosome}.${haplotype}.bam
             echo "Creating consensus assembly for $participant_id $chromosome"
-        	samtools consensus -a -C 0 -T hg38/${chromosome}.fa -r ${chromosome} -f fasta data/phased_${participant_id}_${chromosome}.${haplotype}.bam > data/fasta_${participant_id}_${chromosome}_${haplotype}.fa
+        	samtools consensus -a -C 0 -T hg38/${chromosome}.fa -r ${chromosome} -f fasta data/${participant_id}/phased_${participant_id}_${chromosome}.${haplotype}.bam > data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}.fa
         fi
-	  ./faToTwoBit data/fasta_${participant_id}_${chromosome}_${haplotype}.fa  data/fasta_${participant_id}_${chromosome}_${haplotype}.2bit
+	  ./faToTwoBit data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}.fa  data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}.2bit
     if [ $delete_fasta = 1 ]
     then
-      delete_files data/fasta_${participant_id}_${chromosome}_${haplotype}.*fa
+      delete_files data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}.*fa
     fi
 fi
 }
@@ -177,7 +177,7 @@ blat_herv ()
         output_dir=${ref_output_dir}
 	    output_file=${output_dir}/$ref_output_file
 	else
-	    target_file=data/fasta_${participant_id}_${chromosome}_${haplotype}.2bit
+	    target_file=data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}.2bit
         output_dir=output/${participant_id}/${chromosome}
 	    output_file=${output_dir}/blat_output_${unique_suffix}.psl
 	fi
@@ -189,7 +189,7 @@ blat_herv ()
     fi
     if [ $participant_id != "ref" ]
 	then
-    offsets_file="data/fasta_${participant_id}_${chromosome}_${haplotype}_offsets.txt"	    
+    offsets_file="data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}_offsets.txt"	    
     awk -v haplotype=${haplotype} -v threshold=${threshold} -v slack=${slack} -f find_matches_with_offsets.awk $offsets_file ${ref_output_dir}/${ref_output_file} ${output_file} | tee -a ${logfile} 
 	fi	
 }
@@ -214,7 +214,7 @@ delete_fasta=${delete_fasta:=1}
 long_reads=${long_reads:=1}
 doblat=${doblat:=1}
 logfile="results/mismatches_only_${participant_id}.txt"
-mkdir -p data
+mkdir -p data/${participant_id}
 mkdir -p output
 mkdir -p results
 
