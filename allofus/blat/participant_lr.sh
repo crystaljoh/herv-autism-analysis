@@ -132,18 +132,18 @@ process_phase ()
             ulimit -v 10000000
             # disable core dumps
             ulimit -c 0
-            # show insertions and deletions for creating offsets file
-            samtools view -h -o temp1.sam ${bam_file} ${chromosome} 
-            awk -v OFS='\t' -f soft2hard.awk temp1.sam > temp.sam
-            samtools view -h -bo temp.bam temp.sam
-            samtools index temp.bam
-            samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa temp.bam
-            # rm temp.sam temp.bam
-            if [ $? != 0 ]; then echolog "Consensus building failed for ${participant_id} ${chromosome} ${haplotype}"; return 1; fi
-            
-            # filter out supplementary alignments because they cause excessive memory use - TBD if this will cause problems with the consensus
-            # samtools consensus -f fasta -X hifi -aa --excl-flags SUPPLEMENTARY --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ${bam_file}
-            # if [ $? != 0 ]; then echolog "Consensus building failed for ${participant_id} ${chromosome} ${haplotype}"; return 1; fi
+            # Try the quick way first
+            samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ${bam_file}
+            # If that fails, convert soft-clip to hard first 
+            if [ $? != 0 ]
+            then
+                samtools view -h -o ${unique_suffix}_soft.sam ${bam_file} ${chromosome} 
+                awk -v OFS='\t' -f soft2hard.awk ${unique_suffix}_soft.sam > ${unique_suffix}_hard.sam
+                samtools view -h -bo ${unique_suffix}_hard.bam ${unique_suffix}_hard.sam
+                samtools index ${unique_suffix}_hard.bam
+                samtools consensus -f fasta -X hifi -aa --show-del yes --show-ins yes --mark-ins -r ${chromosome} -o data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa ${unique_suffix}_hard.bam
+                rm ${unique_suffix}_soft.* ${unique_suffix}_hard.*
+            fi
             # create offsets file and strip deletions and insertion markings from fasta
             awk -v offsets_file="data/fasta_${participant_id}_${chromosome}_${haplotype}_offsets.txt" -f calculate_offsets.awk data/fasta_${participant_id}_${chromosome}_${haplotype}.indel.fa > data/fasta_${participant_id}_${chromosome}_${haplotype}.fa
        else
