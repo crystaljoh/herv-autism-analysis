@@ -204,6 +204,8 @@ echolog ()
   echo $* | tee -a ${logfile}
 }
 
+# switch off unicode support for awk speed
+LC_ALL=C
 participant_id=$1
 male=${male:-1}
 threshold=${threshold:=0.9}
