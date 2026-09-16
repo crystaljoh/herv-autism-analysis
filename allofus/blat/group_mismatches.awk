@@ -14,9 +14,11 @@ function process_end()
     printf "%s", ORS
     if (prev[2] == "Insertion") {
         insertions++
+        insertions_by_herv[$12]++
     }
     if (prev[2] == "Deletion") {
         deletions++
+        deletions_by_herv[$12]++
     }
 }
     
@@ -37,5 +39,12 @@ BEGIN {
 }
 END {
     process_end()
-    print "Insertions: ", insertions, "Deletions: ", deletions
+    print "Distinct Insertions: ", insertions, "Distinct Deletions: ", deletions
+    PROCINFO["sorted_in"] = "@val_num_desc"
+    for (herv in insertions_by_herv) {
+        print "Insertions", herv, insertions_by_herv[herv]
+    }
+    for (herv in deletions_by_herv) {
+        print "Deletions", herv, deletions_by_herv[herv]
+    }
 }
