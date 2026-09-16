@@ -26,7 +26,6 @@ BEGIN {
     deletions = 0
 }
 {
-    # TODO: check why insertion points differ so much
     if ($2 != prev[2] || $13 != prev[13] || $17 != prev[17] || ($2 == "Deletion" && abs($19 - prev[19]) > 10000) || ($2 == "Insertion" && abs($22 - prev[22]) > 10000)) {
         process_end()
     }
