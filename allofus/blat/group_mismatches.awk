@@ -26,13 +26,32 @@ BEGIN {
     count = 0
     insertions = 0
     deletions = 0
+    num_participants = 0
 }
 {
+    if (!($1 in participant_indices)) {
+        num_participants++
+        participant_indices[$1] = num_participants
+    }
+    participant_index = participant_indices[$1]
+    if ($2 == "Insertion") {
+        insertions_by_participant[$1]++
+    }
+    if (prev[2] == "Deletion") {
+        deletions_by_participant[$1]++
+    }
     if ($2 != prev[2] || $13 != prev[13] || $17 != prev[17] || ($2 == "Deletion" && abs($19 - prev[19]) > 10000) || ($2 == "Insertion" && abs($22 - prev[22]) > 10000)) {
         process_end()
     }
     count = count + 1
-    print $0
+    if (count == 1) {
+        for (i=2; i<=NF; i++) {
+            printf "%s%s", $i, OFS
+        }
+        printf "%s", ORS
+        printf "%s%s", "Participant_indices:", OFS
+    }
+    printf "%s%s", participant_index, OFS
     for (i=1; i<= NF; i++) {
         prev[i] = $i
     }
@@ -46,5 +65,11 @@ END {
     }
     for (herv in deletions_by_herv) {
         print "Deletions", herv, deletions_by_herv[herv]
+    }
+    for (participant in deletions_by_participant) {
+        print "Participant index", participant_indices[participant], "Insertions:", insertions_by_participant[participant], "Deletions:", deletions_by_participant[participant]
+    }
+    for (participant in participant_indices) {
+        print "Participant index", participant_indices[participant], "participant", participant
     }
 }
