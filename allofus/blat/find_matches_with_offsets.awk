@@ -117,8 +117,24 @@ END {
         	    }
             }
             if (matched == 0) {
+                # find participant offset for reference
+                # binary search
+                lower_ind = 1
+                upper_ind = offset_size-1
+                while (lower_ind <= upper_ind) {
+                    ind =  lower_ind + int((upper_ind - lower_ind) /2)
+                    if (ref_offset[ind] > ref[i,16]) {
+                        upper_ind = ind - 1
+                    }
+                    else if (ref_offset[ind+1] > ref[i,16]) break
+                    else {
+                        lower_ind = ind + 1
+                    }
+                }
+                adjusted_par_pos = ref[i,16] + par_offset[ind] - ref_offset[ind]
             	printf "%s%s", "Deletion ", OFS
                 for(j=1; j<=18; j++) printf "%s%s", ref[i,j], OFS
+                printf "%s%s", adjusted_par_pos, OFS
                 printf "%s%s", haplotype, ORS
             }
             else {
