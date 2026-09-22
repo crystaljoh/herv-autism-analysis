@@ -190,7 +190,7 @@ blat_herv ()
     if [ $participant_id != "ref" ]
 	then
     offsets_file="data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}_offsets.txt"	    
-    awk -v participant_id=${participant_id} -v haplotype=${haplotype} -v threshold=${threshold} -v slack=${slack} -f find_matches_with_offsets.awk $offsets_file ${ref_output_dir}/${ref_output_file} ${output_file} | tee -a ${logfile} 
+    awk -v participant_id=${participant_id} -v haplotype=${haplotype} -v threshold=${threshold} -v slack=${slack} -f find_matches_with_offsets.awk $offsets_file ${ref_output_dir}/${ref_output_file} ${output_file} >> ${logfile} 
 	fi	
 }
 
@@ -233,8 +233,8 @@ fi
 echolog "Processing participant $participant_id minIdentity ${minIdentity} maxIntron ${maxIntron} threshold ${threshold} slack ${slack}"
 echolog "Chromosomes ${chromosomes}"
 # Keep this in sync with find_matches.awk if we change the fields we output
-echolog "Fields in PSL format output are"
-echolog "matches misMatches repMatches nCount queryNumInsert queryBaseInsert targetNumInsert targetBaseInsert strand qName qSize qStart qEnd tName tSize tStart tEnd blockCount haplotype"
+#echolog "Fields in PSL format output are"
+#echolog "matches misMatches repMatches nCount queryNumInsert queryBaseInsert targetNumInsert targetBaseInsert strand qName qSize qStart qEnd tName tSize tStart tEnd blockCount haplotype"
 for chromosome in ${chromosomes:?"must set chromosomes variable"} ; do
    # sex chromosomes must be handled specially for males because they only have one copy so are not phased 
    if [ $male = 1 ] && [ $chromosome = "chrX" ] || [ $chromosome = "chrY" ]
