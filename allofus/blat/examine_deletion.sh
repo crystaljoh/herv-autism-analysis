@@ -11,9 +11,8 @@ par_end=$((par_start+ref_end-ref_start))
 haplotype=${23}
 dfam=${13%%.*}
 # look at the actual sequence in the participant to check for no calls
-./twoBitToFa data/${par}/fasta_${par}_${chr}_${haplotype}.2bit:${chr}:${par_start}-${par_end} herv.fa
-nocalls=$(tr -cd 'N' < herv.fa | wc -m)
-echo Number of no-calls $nocalls, or $((nocalls*100/(par_end-par_start)))\%
+nocalls=$(./count_nocalls.sh $par $chr $par_start $par_end $haplotype)
+echo No-call percentage $nocalls
 # this test looks at a small region to ensure that the deletion is not due to the hard limit of 16 blat matches per strand
 ./blat -minIdentity=80 data/${par}/fasta_${par}_${chr}_${haplotype}.2bit:${chr}:${par_start}-${par_end} hervs/${dfam}.fa stillnotthere.psl
 head -n 6 stillnotthere.psl

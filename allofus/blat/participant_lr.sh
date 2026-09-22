@@ -190,7 +190,7 @@ blat_herv ()
     if [ $participant_id != "ref" ]
 	then
     offsets_file="data/${participant_id}/fasta_${participant_id}_${chromosome}_${haplotype}_offsets.txt"	    
-    awk -v haplotype=${haplotype} -v threshold=${threshold} -v slack=${slack} -f find_matches_with_offsets.awk $offsets_file ${ref_output_dir}/${ref_output_file} ${output_file} | tee -a ${logfile} 
+    awk -v participant_id=${participant_id} -v haplotype=${haplotype} -v threshold=${threshold} -v slack=${slack} -f find_matches_with_offsets.awk $offsets_file ${ref_output_dir}/${ref_output_file} ${output_file} | tee -a ${logfile} 
 	fi	
 }
 
