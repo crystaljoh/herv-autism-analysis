@@ -131,10 +131,11 @@ END {
                         lower_ind = ind + 1
                     }
                 }
+                adjusted_par_pos = ref[i,16] + par_offset[ind] - ref_offset[ind]
                 cmd = "./count_nocalls.sh " participant_id " " ref[i,14] " " ref[i,16] " " ref[i,17] " " haplotype
                 cmd | getline no_call_percentage
-                adjusted_par_pos = ref[i,16] + par_offset[ind] - ref_offset[ind]
-            	if (no_call_percentage > 20) {
+                print "nocall percentage", no_call_percentage
+            	if (no_call_percentage > 10) {
                     printf "%s%s", "No-call  ", OFS
                 }
                 else 
