@@ -117,3 +117,39 @@ These are all subdirectories of blat
 - output holds the psl files produced by blat. These are only of interest if investigating an apparent HERV deletion or insertion.
 
 - results holds the matches/mismatches output files.
+
+# Process for long-read WGS
+
+Mostly similar to the short-read process but with an additional analysis step at the end.
+
+Copy all the DFam HERVs into the hervs directory
+```
+cp all_hervs/DF*.fa hervs/
+```
+Choose all chromosomes to analyze
+```
+source ./all_chromosomes.sh
+```
+Now, once only, process the reference genome. This only needs to be rerun if you change the HERVs or chromosomes to be processed.
+```
+./participant_lr.sh ref
+```
+Create a file containing the participant ids you want to process, one per line, e.g. controls.txt.
+Then kick off the processing with a command like this
+```
+cat controls.txt | xargs -n 1 -P 1 ./participant_lr.sh
+```
+Note the lr suffix on the script name for long reads.
+This will hopefully crunch away processing all the participants one by one, taking about 5 hours for each participant.
+I have reduced the amount it logs as it goes along, because printing more seemed to be enough to trigger a data egress alert.
+As participant 1234 is processed will create a file results/mismatches_only_1234.txt.
+This file actually contains the matches as well - just to check that everything is working OK. I'll change the name at some point.
+
+If the process gets interrupted for some reason, you can just restart it. If some participants were already completed, you should remove those from the controls.txt file to speed things up.
+
+Once all the participants have been processed you process the results file to produce the summary file
+```
+./process_mismatches.sh
+```
+will produce a file mismatches.txt containing all the insertions and deletions grouped together and summary statistics.
+
