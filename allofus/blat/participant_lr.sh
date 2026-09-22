@@ -129,7 +129,7 @@ process_phase ()
                 bam_file=${hap[2]}
             fi
             # limit virtual memory size
-            ulimit -v 10000000
+            ulimit -v ${memlimit}
             # disable core dumps
             ulimit -c 0
             # Try the quick way first
@@ -215,6 +215,7 @@ maxIntron=${maxIntron:=400}
 delete_fasta=${delete_fasta:=1}
 long_reads=${long_reads:=1}
 doblat=${doblat:=1}
+memlimit=${memlimit:=10000000}
 logfile="results/mismatches_only_${participant_id}.txt"
 mkdir -p data/${participant_id}
 mkdir -p output

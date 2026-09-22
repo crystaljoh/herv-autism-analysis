@@ -154,3 +154,16 @@ Once all the participants have been processed you process the results file to pr
 ```
 will produce a file mismatches.txt containing all the insertions and deletions grouped together and summary statistics.
 
+## Running participants in parallel
+
+If you have a more powerful VM, you might want to run several participants at once, to make things run faster. For example, with 4 CPUs you might run 3 in parallel. To do that use a command line like this
+```
+cat controls.txt | xargs -n 1 -P 3 ./participant_lr.sh
+```
+
+However, there's a danger you might run out of memory, which could cause the VM to become unresponsive. I set a limit of 10GB of memory by default, which provides enough headroom on an n1-highmem-2 machine with 13GB. But if you have the default n1-highmem-4 machine, you have 4 CPUs and 26GB of ram, so setting the memory limit to 8GB would make the worst case memory consumption only 24GB, which should be OK. To achieve this execute this before processing the participants
+```
+export memlimit=8000000
+```
+
+
