@@ -124,6 +124,7 @@ Mostly similar to the short-read process but with an additional analysis step at
 
 Copy all the DFam HERVs into the hervs directory
 ```
+mkdir -p hervs
 cp all_hervs/DF*.fa hervs/
 ```
 Choose all chromosomes to analyze
