@@ -14,11 +14,11 @@ function process_end()
     printf "%s", ORS
     if (prev[2] == "Insertion") {
         insertions++
-        insertions_by_herv[$12]++
+        insertions_by_herv[prev[12]]++
     }
     if (prev[2] == "Deletion") {
         deletions++
-        deletions_by_herv[$12]++
+        deletions_by_herv[prev[12]]++
     }
 }
     
@@ -37,7 +37,7 @@ BEGIN {
     if ($2 == "Insertion") {
         insertions_by_participant[$1]++
     }
-    if (prev[2] == "Deletion") {
+    if ($2 == "Deletion") {
         deletions_by_participant[$1]++
     }
     if ($2 != prev[2] || $13 != prev[13] || $17 != prev[17] || ($2 == "Deletion" && abs($19 - prev[19]) > 10000) || ($2 == "Insertion" && abs($22 - prev[22]) > 10000)) {
@@ -66,8 +66,8 @@ END {
     for (herv in deletions_by_herv) {
         print "Deletions", herv, deletions_by_herv[herv]
     }
-    for (participant in deletions_by_participant) {
-        print "Participant index", participant_indices[participant], "Insertions:", insertions_by_participant[participant], "Deletions:", deletions_by_participant[participant]
+    for (participant in participant_indices) {
+        print "Participant index", participant_indices[participant], "Insertions:", (insertions_by_participant[participant] + 0), "Deletions:", (deletions_by_participant[participant] + 0)
     }
     for (participant in participant_indices) {
         print "Participant index", participant_indices[participant], "participant", participant

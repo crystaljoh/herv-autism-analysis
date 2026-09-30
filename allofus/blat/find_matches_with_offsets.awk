@@ -132,7 +132,8 @@ END {
                     }
                 }
                 adjusted_par_pos = ref[i,16] + par_offset[ind] - ref_offset[ind]
-                cmd = "./count_nocalls.sh " participant_id " " ref[i,14] " " ref[i,16] " " ref[i,17] " " haplotype
+                adjusted_par_end = ref[i,17] + par_offset[ind] - ref_offset[ind]
+                cmd = "./count_nocalls.sh " participant_id " " ref[i,14] " " adjusted_par_pos " " adjusted_par_end " " haplotype
                 cmd | getline no_call_percentage
                 print "nocall percentage", no_call_percentage
             	if (no_call_percentage > 10) {
