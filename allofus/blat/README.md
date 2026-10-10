@@ -10,7 +10,7 @@ Start in the herv-autism-analysis/allofus/blat directory
 
 Pick some hervs to analyze and copy their fasta files from all_hervs to hervs directory, having first created the hervs directory if necessary e.g.
 ```
-mkdir -p hervs
+mkdir -p hervs/
 cp all_hervs/DF000000174.fa hervs
 ```
 Note: If you omit the mkdir command, you will end up with a file called hervs, instead of a directory, and you will have to delete it before trying again.
@@ -165,5 +165,27 @@ However, there's a danger you might run out of memory, which could cause the VM 
 ```
 export memlimit=8000000
 ```
+## Checking individual insertions and deletions
 
+There are two scripts, one each for checking deletions and insertions. To run the deletion check, take one of the lines from a mismatches_only... file and add the participant id on the front and invoke the script like this
+```
+./examine_deletion.sh 1234567 Deletion  5153 391 0 1 25 109 12 120 + DF000000198.4 5654 0 5654 chr6 170805979 31429885 31435550 29 31505811 2
+```
+First, this finds the percentage of nocalls in the area of the participant genone where we would expect the HERV to be found. This number should be low (and probably will be since I made the fix to treat apparent deletions with high nocall percentage as bogus).
+
+Then it does a blat search where the HERV is expected in order to rule out the blat match limit as a possible reason for the apparent deletion. If this search returns a strong match then that's probably the issue.
+
+Then it searches in the participant for the left flank and right flank (2000 bases) of the HERV from the ref. If one or both of these return a strong match, then the deletion is localised to the HERV itself, otherwise it is part of a larger deletion.
+
+We could also search in the reference for the area in the participant where we would expect the HERV. If we see two strong matches with a gap, that would support the deletion call.
+
+Similary, to check an insertion invoke the appropriate script with the line from the mismatches_only..., adding the participant id e.g.
+```
+./examine_insertion.sh 1234567 Insertion 6865 323 0 39 4 309 5 15 - DF000000188.5 7536 0 7536 chr1 249292396 73299073 73306315 9 73130271 1
+```
+This checks the percentage of nocalls in the area of the reference where we might expect the HERV to have been. If it is high, then there is a problem with the reference genome in this area.
+
+Then it does a limited blat search in the reference genome to check for the blat hard limit problem. If it finds a strong match then that's the issue.
+
+Then it searches in the participant for the left and right flank of where the HERV would be in the ref. If these return strong matches, then that supports an insertion.
 
