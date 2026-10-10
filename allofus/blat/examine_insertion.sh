@@ -21,6 +21,6 @@ head -n 6 stillnotthere.psl
 ./twoBitToFa hg38/${chr}.2bit:${chr}:$((ref_start-2000))-$((ref_start)) leftflank.fa
 ./blat -minIdentity=80 data/${par}/fasta_${par}_${chr}_${haplotype}.2bit:${chr}:$((par_start-100000))-$((par_end+100000)) leftflank.fa leftflank.psl
 head -n 6 leftflank.psl
-./twoBitToFa hg38/${chr}.2bit:${chr}:$((ref_start))-$((ref_stard+2000)) rightflank.fa
+./twoBitToFa hg38/${chr}.2bit:${chr}:$((ref_start))-$((ref_start+2000)) rightflank.fa
 ./blat -minIdentity=80 data/${par}/fasta_${par}_${chr}_${haplotype}.2bit:${chr}:$((par_start-100000))-$((par_end+100000)) rightflank.fa rightflank.psl
 head -n 6 rightflank.psl 
