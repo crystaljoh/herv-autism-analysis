@@ -1,15 +1,16 @@
 # commands to examine an apparent deletion
 # example line to pass to this script (x are don't care)
+# the line is exactly as found in one of the mismatches_only files, with the participant_id added at the fro
 # participant_id x x x x x x x x x x x DFAM_accession_number x x x chromosome x ref_start ref_end x par_start haplotype
-# 1023419 Deletion 5032 233 0 8 23 246 20 383 - LTR2B-int DF003576587.2 5520 0 5519 chr1 248956422 1412721 1418377  32 1423212 2
+# 1023419 Deletion  5153 391 0 1 25 109 12 120 + DF000000198.4 5654 0 5654 chr6 170805979 31429885 31435550 29 31505811 2
 par=$1
-chr=${17}
-ref_start=${19}
-ref_end=${20}
-par_start=${22}
+chr=${16}
+ref_start=${18}
+ref_end=${19}
+par_start=${21}
 par_end=$((par_start+ref_end-ref_start))
-haplotype=${23}
-dfam=${13%%.*}
+haplotype=${22}
+dfam=${12%%.*}
 # look at the actual sequence in the participant to check for no calls
 nocalls=$(./count_nocalls.sh $par $chr $par_start $par_end $haplotype)
 echo No-call percentage $nocalls
@@ -21,4 +22,4 @@ head -n 6 stillnotthere.psl
 head -n 6 leftflank.psl
 ./twoBitToFa hg38/${chr}.2bit:${chr}:$((ref_end))-$((ref_end+2000)) rightflank.fa
 ./blat -minIdentity=80 data/${par}/fasta_${par}_${chr}_${haplotype}.2bit:${chr}:$((par_start-100000))-$((par_end+100000)) rightflank.fa rightflank.psl
-head -n 6 rightflank.psl
+head -n 6 rightflank.psl 
